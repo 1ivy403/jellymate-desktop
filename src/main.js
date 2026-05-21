@@ -57,7 +57,9 @@ function createWindow() {
 // ── Menu Bar Tray ──
 function createTray() {
   // 用一个极小的空图标
-  const img = nativeImage.createEmpty()
+  const iconPath = path.join(__dirname, '../assets/icon-1024.png')
+  const img = nativeImage.createFromPath(iconPath).resize({ width: 18, height: 18 })
+  img.setTemplateImage(true)
   tray = new Tray(img)
   tray.setToolTip('JellyMate 🪼')
 

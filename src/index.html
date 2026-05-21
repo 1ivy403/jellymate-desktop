@@ -33,6 +33,7 @@
     cursor:grab;z-index:50;
     opacity:.8;
     transition:opacity .8s ease,
+               transform .6s cubic-bezier(.25,.9,.3,1),
                --bell-hi 1.6s cubic-bezier(.16,1,.3,1),
                --bell-mid 1.6s cubic-bezier(.16,1,.3,1),
                --bell-lo  1.6s cubic-bezier(.16,1,.3,1),
@@ -136,6 +137,11 @@
   @keyframes tut-ring{0%{transform:scale(1);opacity:.8;}100%{transform:scale(1.45);opacity:0;}}
   #jelly-wrap.tut-success .bell{box-shadow:0 0 90px rgba(127,216,232,.9),0 0 160px rgba(127,216,232,.5)!important;}
 
+  /* ── 贴边倾斜 ── */
+  #jelly-wrap.edge-right  { transform: rotate(12deg); }
+  #jelly-wrap.edge-left   { transform: rotate(-12deg); }
+  #jelly-wrap.edge-bottom { transform: rotate(8deg); }
+
   /* ── 气泡 ── */
   #bubble{
     position:absolute;left:-60px;top:4px;
@@ -179,53 +185,6 @@
   #recall-edge.show{opacity:1;pointer-events:all;}
   #recall-edge span{animation:rpulse 2s ease-in-out infinite;}
   @keyframes rpulse{0%,100%{opacity:.45;transform:scale(.9);}50%{opacity:1;transform:scale(1.1);}}
-
-  /* ── 面板把手 ── */
-  #panel-handle{
-    position:absolute;
-    background:rgba(127,216,232,.08);
-    border:1px solid var(--line);
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;transition:background .2s;
-  }
-  #panel-handle:hover{background:rgba(127,216,232,.16);}
-  #panel.from-bottom #panel-handle{width:52px;height:22px;top:-23px;border-bottom:none;border-radius:10px 10px 0 0;}
-  #panel.from-bottom #panel-handle::after,#panel.from-top #panel-handle::after{content:"";display:block;width:24px;height:3px;background:rgba(127,216,232,.38);border-radius:2px;}
-  #panel.from-top #panel-handle{width:52px;height:22px;bottom:-23px;border-top:none;border-radius:0 0 10px 10px;}
-  #panel.from-right #panel-handle{width:22px;height:52px;left:-23px;border-right:none;border-radius:10px 0 0 10px;}
-  #panel.from-right #panel-handle::after,#panel.from-left #panel-handle::after{content:"";display:block;width:3px;height:24px;background:rgba(127,216,232,.38);border-radius:2px;}
-  #panel.from-left #panel-handle{width:22px;height:52px;right:-23px;border-left:none;border-radius:0 10px 10px 0;}
-
-  /* ── 控制面板 ── */
-  #panel{
-    position:fixed;
-    background:var(--panel);border:1px solid var(--line);
-    backdrop-filter:blur(14px);
-    display:flex;flex-direction:column;gap:8px;
-    box-shadow:0 0 40px rgba(0,0,0,.55);
-    z-index:80;padding:12px 16px 16px;
-    overflow:visible;
-    transition:transform .45s cubic-bezier(.25,.9,.3,1);
-  }
-  #panel.from-bottom{left:0;right:0;bottom:0;border-bottom:none;border-radius:20px 20px 0 0;transform:translateY(100%);}
-  #panel.from-bottom.show{transform:translateY(0);}
-  #panel.from-top{left:0;right:0;top:0;border-top:none;border-radius:0 0 20px 20px;transform:translateY(-100%);}
-  #panel.from-top.show{transform:translateY(0);}
-  #panel.from-right{right:0;top:0;bottom:0;width:240px;border-right:none;border-radius:20px 0 0 20px;transform:translateX(100%);}
-  #panel.from-right.show{transform:translateX(0);}
-  #panel.from-left{left:0;top:0;bottom:0;width:240px;border-left:none;border-radius:0 20px 20px 0;transform:translateX(-100%);}
-  #panel.from-left.show{transform:translateX(0);}
-  .panel-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-  .panel-title-row{display:flex;align-items:center;justify-content:space-between;}
-  .panel-label{font-size:11px;color:var(--ink-dim);width:34px;flex-shrink:0;}
-  .btn{font-family:inherit;font-size:12px;background:rgba(127,216,232,.1);color:var(--glow-soft);border:1px solid var(--line);padding:5px 11px;border-radius:9px;cursor:pointer;transition:all .2s;}
-  .btn:hover{background:rgba(127,216,232,.22);transform:translateY(-1px);}
-  .btn.active{background:var(--glow);color:#06121f;border-color:var(--glow);}
-  .btn.warn{color:#ffc4c4;border-color:rgba(255,150,150,.2);}
-  .btn.warn:hover{background:rgba(255,100,100,.15);}
-  .btn-close{font-family:inherit;font-size:13px;background:none;color:var(--ink-dim);border:none;cursor:pointer;padding:2px 4px;opacity:.5;transition:opacity .2s;}
-  .btn-close:hover{opacity:1;}
-  .panel-divider{height:1px;background:var(--line);margin:2px 0;}
 
   /* ── 好奇对话卡 ── */
   #curious-card{
@@ -296,32 +255,6 @@
 
 <div id="recall-edge"><span>🪼</span></div>
 
-<div id="panel">
-  <div id="panel-handle"></div>
-  <div class="panel-title-row">
-    <span style="font-size:10px;color:var(--glow);letter-spacing:1px;opacity:.7;">JellyMate</span>
-    <button class="btn-close" id="btn-close-panel">✕</button>
-  </div>
-  <div class="panel-row">
-    <button class="btn warn" id="btn-dismiss">退下</button>
-    <button class="btn" id="btn-fade">半透明</button>
-  </div>
-  <div class="panel-divider"></div>
-  <div class="panel-row">
-    <span class="panel-label">情绪</span>
-    <button class="btn active" data-mood="calm">安静</button>
-    <button class="btn" data-mood="curious">好奇</button>
-    <button class="btn" data-mood="focus">专注</button>
-    <button class="btn" data-mood="sleepy">困倦</button>
-    <button class="btn" data-mood="happy">开心</button>
-  </div>
-  <div class="panel-row">
-    <span class="panel-label">操作</span>
-    <button class="btn" id="btn-focus">⏱ 专注</button>
-    <button class="btn" id="btn-tutorial">? 引导</button>
-  </div>
-</div>
-
 <div id="tut-card">
   <div class="tut-header">
     <span class="tut-progress" id="tut-progress">1 / 8</span>
@@ -361,8 +294,6 @@ const wrap        = document.getElementById('jelly-wrap');
 const bubble      = document.getElementById('bubble');
 const focusTag    = document.getElementById('focus-tag');
 const focusTimeEl = document.getElementById('focus-time');
-const panel       = document.getElementById('panel');
-const panelHandle = document.getElementById('panel-handle');
 const recallEdge  = document.getElementById('recall-edge');
 const eyesEl      = wrap.querySelector('.eyes');
 
@@ -404,8 +335,6 @@ function setMood(m, source){
   currentMood = m;
   if(m !== 'curious') _curiositySource = null;
   if(source) _curiositySource = source;
-  document.querySelectorAll('[data-mood]').forEach(b =>
-    b.classList.toggle('active', b.dataset.mood === m));
   if(m === 'happy'){
     happyTO = setTimeout(() => { if(currentMood==='happy') setMood('calm'); }, 5000);
   }
@@ -426,6 +355,7 @@ function speakMood(){
 
 // ── 状态 ──
 let isOut = false, isFaded = false, isDismissed = false;
+let edgeDockSide = null;
 
 function swimOut(){
   isOut = true;
@@ -443,11 +373,12 @@ function dismiss(){
   wrap.style.opacity = '0.15';
   recallEdge.classList.add('show');
   bubble.classList.remove('show');
-  // 退下后让整个窗口穿透（除召回按钮）
   if(IS_ELECTRON) api.mouseLeaveJelly();
 }
 function recall(){
   isDismissed = false; isFaded = false;
+  edgeDockSide = null;
+  wrap.classList.remove('edge-right','edge-left','edge-bottom');
   recallEdge.classList.remove('show');
   wrap.style.opacity = '';
   wrap.classList.remove('faded');
@@ -463,13 +394,11 @@ function toggleFade(){
   if(isFaded){
     isFaded = false;
     wrap.classList.remove('faded');
-    document.getElementById('btn-fade').textContent = '半透明';
   } else {
     isFaded = true; isDismissed = false;
     recallEdge.classList.remove('show');
     wrap.style.opacity = '';
     wrap.classList.add('faded');
-    document.getElementById('btn-fade').textContent = '取消半透明';
   }
 }
 
@@ -487,8 +416,7 @@ wrap.addEventListener('mouseenter', () => {
 });
 wrap.addEventListener('mouseleave', () => {
   clearTimeout(hoverCuriousTO);
-  // 面板、好奇卡、教学卡任一打开时保持可交互
-  if(!panel.classList.contains('show') && !curiousCard.classList.contains('show') && !tutCard.classList.contains('show')){
+  if(!curiousCard.classList.contains('show') && !tutCard.classList.contains('show')){
     api.mouseLeaveJelly();
   }
   if(_curiositySource === 'hover'){
@@ -500,18 +428,10 @@ wrap.addEventListener('mouseleave', () => {
   }
 });
 
-// 面板和卡片显示时保持可交互
 function enableInteract(){ api.mouseEnterJelly(); }
-function disableInteract(){
-  if(!wrap.matches(':hover')) api.mouseLeaveJelly();
-}
-panel.addEventListener('mouseenter', enableInteract);
-panel.addEventListener('mouseleave', () => {
-  if(!panel.classList.contains('show') && !wrap.matches(':hover')) api.mouseLeaveJelly();
-});
 recallEdge.addEventListener('mouseenter', enableInteract);
 recallEdge.addEventListener('mouseleave', () => {
-  if(!wrap.matches(':hover') && !panel.classList.contains('show')) api.mouseLeaveJelly();
+  if(!wrap.matches(':hover')) api.mouseLeaveJelly();
 });
 
 let hoverCuriousTO = null;
@@ -574,20 +494,38 @@ function onUp(e){
 function endDrag(){
   const W=window.innerWidth, H=window.innerHeight;
   const cx=posX+wrap.offsetWidth/2, cy=posY+wrap.offsetHeight/2;
-  let nx=posX, ny=posY;
+  let nx=posX, ny=posY, newEdge=null;
+
+  if(cx>W-100) newEdge='right';
+  else if(cx<100) newEdge='left';
+  if(cy>H-100) newEdge='bottom';
+
+  // 已贴边状态再次向同侧拖动 → 退下
+  if(edgeDockSide && newEdge===edgeDockSide){
+    edgeDockSide=null;
+    wrap.classList.remove('edge-right','edge-left','edge-bottom');
+    dismiss();
+    tutSignal('drag');
+    return;
+  }
+
   if(cx>W-100) nx=W-wrap.offsetWidth*.6;
   else if(cx<100) nx=-wrap.offsetWidth*.4;
   if(cy>H-100){ ny=H-wrap.offsetHeight*.25; isOut=false; }
   ny=Math.max(-wrap.offsetHeight*.5, Math.min(ny, H-30));
   nx=Math.max(-wrap.offsetWidth*.5,  Math.min(nx, W-30));
   animateTo(nx, ny, 0.7);
-  if(!panel.classList.contains('show')) setTimeout(()=>applyPanelEdge(getJellyEdge()), 750);
+
+  edgeDockSide=newEdge;
+  wrap.classList.remove('edge-right','edge-left','edge-bottom');
+  if(newEdge) wrap.classList.add('edge-'+newEdge);
+
   tutSignal('drag');
 }
 function onLongPress(){
   drag.longFired=true;
   wrap.classList.remove('pressing');
-  if(!panel.classList.contains('show')) openPanel();
+  dismiss();
   tutSignal('longpress');
 }
 
@@ -736,48 +674,6 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('blur',()=>{ userWasAway=true; });
 window.addEventListener('focus',onUserReturned);
 
-// ── 面板（方向跟随水母）──
-const EDGES=['bottom','top','right','left'];
-let prePanelPosX=0, prePanelPosY=0;
-
-function getJellyEdge(){
-  const W=window.innerWidth, H=window.innerHeight;
-  const cx=posX+wrap.offsetWidth/2, cy=posY+wrap.offsetHeight/2;
-  const dists={bottom:H-cy,top:cy,right:W-cx,left:cx};
-  return Object.entries(dists).sort((a,b)=>a[1]-b[1])[0][0];
-}
-function applyPanelEdge(edge){
-  EDGES.forEach(e=>panel.classList.remove('from-'+e));
-  panel.classList.add('from-'+edge);
-  if(['bottom','top'].includes(edge)){
-    const hx=Math.min(Math.max(posX+wrap.offsetWidth/2-26,12),window.innerWidth-64);
-    panelHandle.style.left=hx+'px'; panelHandle.style.top='';
-  } else {
-    const hy=Math.min(Math.max(posY+wrap.offsetHeight/2-26,12),window.innerHeight-64);
-    panelHandle.style.top=hy+'px'; panelHandle.style.left='';
-  }
-}
-function openPanel(){
-  const edge=getJellyEdge();
-  applyPanelEdge(edge);
-  prePanelPosX=posX; prePanelPosY=posY;
-  const dx=edge==='right'?-170:edge==='left'?170:0;
-  const dy=edge==='bottom'?-188:edge==='top'?188:0;
-  animateTo(posX+dx,posY+dy,0.4);
-  panel.classList.add('show');
-  api.panelOpen();
-}
-function closePanel(){
-  panel.classList.remove('show');
-  animateTo(prePanelPosX,prePanelPosY,0.4);
-  api.panelClose();
-}
-panelHandle.addEventListener('click',()=>
-  panel.classList.contains('show')?closePanel():openPanel());
-
-document.querySelectorAll('[data-mood]').forEach(b=>
-  b.addEventListener('click',()=>setMood(b.dataset.mood,'user')));
-
 // ── 专注 ──
 let focusTimer=null;
 function startFocus(){
@@ -800,12 +696,8 @@ function startFocus(){
     focusTimeEl.textContent=mm+':'+ss;
   },1000);
 }
-document.getElementById('btn-close-panel').addEventListener('click', closePanel);
-document.getElementById('btn-focus').addEventListener('click',()=>{ if(!isOut) swimOut(); startFocus(); closePanel(); });
-document.getElementById('btn-dismiss').addEventListener('click',()=>{ panel.classList.remove('show'); api.panelClose(); dismiss(); });
-document.getElementById('btn-fade').addEventListener('click',toggleFade);
+
 recallEdge.addEventListener('click',recall);
-document.getElementById('btn-tutorial').addEventListener('click',()=>{ closePanel(); startTutorial(); });
 
 // ── 自动困倦 ──
 let idleTO=null;
@@ -825,6 +717,7 @@ checkNightMood();
 setInterval(checkNightMood,5*60*1000);
 
 // ════════════ 新手教学 ════════════
+const TUT_DONE_KEY = 'jellymate_tut_done';
 const TUT_STEPS=[
   {title:'你好，我是水母 🪼',sub:'住在屏幕角落陪着你\n花 30 秒认识一下我？',wait:'btn',btn:'认识一下',arrow:''},
   {title:'把鼠标慢慢靠近我',sub:'越近越好，我会注意到你的',wait:'proximity',arrow:'向右下角的我靠近 →'},
@@ -832,14 +725,15 @@ const TUT_STEPS=[
   {title:'双击我',sub:'开始 25 分钟专注陪伴\n再次双击可随时退出',wait:'dbl',arrow:'双击我 →'},
   {title:'拖着我换个地方',sub:'我可以住在屏幕任意角落\n贴近边缘会自动吸附',wait:'drag',arrow:'按住拖动我 →'},
   {title:'快速连点我 4 次',sub:'看看我会有什么反应…',wait:'poked',arrow:'4 次快速点击 →'},
-  {title:'长按我 0.8 秒',sub:'打开更多选项面板',wait:'longpress',arrow:'长按我 →'},
-  {title:'认识完了 ✦',sub:'之后长按随时找我\n鼠标离开再回来，我也会认出你',wait:'btn',btn:'开始陪伴',arrow:''}
+  {title:'长按我 0.8 秒',sub:'我会暂时退下\n右边有个按钮能把我召回',wait:'longpress',arrow:'长按我 →'},
+  {title:'认识完了 ✦',sub:'拖到边缘两次也可以退下\n我就在这，随时找我',wait:'btn',btn:'开始陪伴',arrow:''}
 ];
+
 // 教学卡片显示时保持可交互
 const tutCard=document.getElementById('tut-card');
 tutCard.addEventListener('mouseenter', ()=> api.mouseEnterJelly());
 tutCard.addEventListener('mouseleave', ()=>{
-  if(!wrap.matches(':hover') && !panel.classList.contains('show')) api.mouseLeaveJelly();
+  if(!wrap.matches(':hover')) api.mouseLeaveJelly();
 });
 const tutTitle=document.getElementById('tut-title');
 const tutSub=document.getElementById('tut-sub');
@@ -850,11 +744,13 @@ const tutArrow=document.getElementById('tut-arrow');
 const tutPfill=document.getElementById('tut-pfill');
 const tutProgress=document.getElementById('tut-progress');
 
+let tutActive=false, tutStep=0, tutWaiting=false;
+
 tutActionBtn.addEventListener('click',()=>{
   if(!tutActive) return;
-  if(tutStep<TUT_STEPS.length-1) advanceTutorial(); else endTutorial();
+  if(tutStep<TUT_STEPS.length-1) advanceTutorial(); else endTutorial(false);
 });
-document.getElementById('tut-skip-btn').addEventListener('click',endTutorial);
+document.getElementById('tut-skip-btn').addEventListener('click',()=>endTutorial(true));
 
 function startTutorial(){
   tutActive=true; tutStep=0;
@@ -903,20 +799,29 @@ function advanceTutorial(){
   setTimeout(()=>{
     wrap.classList.remove('spin','tut-success'); tutCard.classList.remove('step-done');
     tutDoneEl.classList.remove('show'); tutStep++;
-    if(tutStep>=TUT_STEPS.length) endTutorial(); else showTutStep(tutStep);
+    if(tutStep>=TUT_STEPS.length) endTutorial(false); else showTutStep(tutStep);
   },900);
 }
-function endTutorial(){
+function endTutorial(skipped=false){
   tutActive=false; tutWaiting=false;
   tutCard.classList.remove('show');
   wrap.classList.remove('tut-active','tut-success');
-  speak('很高兴认识你 🪼',3000); setMood('happy');
+  if(isDismissed) recall();
+  if(skipped){
+    speak('好，我就在这 🪼',3500); setMood('calm');
+  } else {
+    localStorage.setItem(TUT_DONE_KEY,'1');
+    speak('很高兴认识你 🪼',3000); setMood('happy');
+  }
 }
 
 // ── 初始化 ──
 initPosition();
-applyPanelEdge(getJellyEdge());
-setTimeout(()=>speak('我在',2200),600);
+if(localStorage.getItem(TUT_DONE_KEY)){
+  setTimeout(()=>speak('我在',2200),600);
+} else {
+  setTimeout(startTutorial, 800);
+}
 </script>
 </body>
 </html>
