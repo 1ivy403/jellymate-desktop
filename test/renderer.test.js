@@ -155,7 +155,7 @@ async function test(name, fn) {
   });
 
   await test('#jelly-wrap transition 包含 transform', () => {
-    assert.ok(html.includes('transform .6s'), '#jelly-wrap 缺少 transform 过渡');
+    assert.ok(html.includes('transform 1.2s'), '#jelly-wrap 缺少 transform 过渡');
   });
 
   // ══ 汇总 ══
