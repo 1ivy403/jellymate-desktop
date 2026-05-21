@@ -2,38 +2,86 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>水母晃动预览</title>
+<title>水母游动 · 预览</title>
 <style>
-  body{margin:0;background:#07111f;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:"PingFang SC",sans-serif;color:#8fa4c4;user-select:none;overflow:hidden;}
-  h2{font-size:14px;letter-spacing:2px;margin-bottom:6px;color:rgba(127,216,232,.5);}
-  p{font-size:12px;margin-bottom:40px;color:rgba(127,216,232,.3);}
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#07111f; overflow:hidden;
+    width:100vw; height:100vh;
+    font-family:"PingFang SC",sans-serif; user-select:none;
+  }
 
-  #stage{position:relative;width:200px;height:300px;cursor:grab;}
-  #stage:active{cursor:grabbing;}
+  #jelly {
+    position:fixed;
+    width:200px; height:300px;
+    cursor:grab;
+  }
+  #jelly.dragging { cursor:grabbing; }
 
-  #jelly-float{width:100%;height:100%;animation:float 6s ease-in-out infinite;}
-  @keyframes float{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-18px) rotate(1.5deg);}}
+  /* 整体旋转层 */
+  #rot-wrap { width:100%; height:100%; }
 
-  .bell{
-    position:absolute;left:50%;top:40px;transform:translateX(-50%);
-    width:140px;height:120px;
-    background:radial-gradient(ellipse at 50% 35%,#bdeef5 0%,#7fd8e8 45%,#4a9fc4 100%);
+  /* 飘浮动画：拖动时暂停 */
+  #float-wrap {
+    width:100%; height:100%;
+    animation:float 6s ease-in-out infinite;
+  }
+  #jelly.dragging #float-wrap { animation-play-state:paused; }
+  @keyframes float {
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-16px);}
+  }
+
+  .bell {
+    position:absolute; left:50%; top:40px;
+    transform:translateX(-50%);
+    width:140px; height:120px;
+    background:radial-gradient(ellipse at 50% 35%,
+      #bdeef5 0%, #7fd8e8 45%, #4a9fc4 100%);
     border-radius:50% 50% 44% 44%/62% 62% 38% 38%;
-    box-shadow:0 0 34px rgba(127,216,232,.55);
+    opacity:.92;
+    box-shadow:0 0 36px rgba(127,216,232,.6);
     animation:pulse 6s ease-in-out infinite;
   }
-  @keyframes pulse{0%,100%{transform:translateX(-50%) scaleY(1);}50%{transform:translateX(-50%) scaleY(.9) scaleX(1.06);}}
-  .bell::after{content:"";position:absolute;left:50%;top:24px;transform:translateX(-50%);width:80px;height:58px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.4),transparent 70%);}
+  #jelly.dragging .bell { animation-play-state:paused; }
+  @keyframes pulse {
+    0%,100%{transform:translateX(-50%) scaleY(1) scaleX(1);}
+    50%{transform:translateX(-50%) scaleY(.9) scaleX(1.06);}
+  }
+  .bell::after {
+    content:""; position:absolute; left:50%; top:24px;
+    transform:translateX(-50%);
+    width:80px; height:58px; border-radius:50%;
+    background:radial-gradient(ellipse,rgba(255,255,255,.4),transparent 70%);
+  }
 
-  .eyes{position:absolute;left:50%;top:86px;display:flex;gap:26px;transform:translateX(-50%);z-index:3;}
-  .eye{width:11px;height:14px;background:#0a1228;border-radius:50%;animation:blink 5.5s infinite;}
+  .eyes {
+    position:absolute; left:50%; top:86px;
+    display:flex; gap:26px; transform:translateX(-50%);
+    pointer-events:none;
+  }
+  .eye {
+    width:11px; height:14px; background:#0a1228;
+    border-radius:50%; animation:blink 5.5s infinite;
+  }
   @keyframes blink{0%,94%,100%{transform:scaleY(1);}97%{transform:scaleY(.1);}}
 
-  .cheeks{position:absolute;left:50%;top:104px;transform:translateX(-50%);display:flex;gap:62px;}
-  .cheek{width:15px;height:9px;background:rgba(255,150,170,.5);border-radius:50%;}
+  .cheeks {
+    position:absolute; left:50%; top:104px;
+    transform:translateX(-50%); display:flex; gap:62px; pointer-events:none;
+  }
+  .cheek { width:15px; height:9px; background:rgba(255,150,170,.5); border-radius:50%; }
 
-  .tentacles{position:absolute;left:50%;top:150px;transform:translateX(-50%);width:130px;height:130px;}
-  .tent{position:absolute;top:0;width:5px;background:linear-gradient(#7fd8e8,transparent);border-radius:3px;transform-origin:top center;animation:sway 4.5s ease-in-out infinite;}
+  .tentacles {
+    position:absolute; left:50%; top:150px;
+    transform:translateX(-50%); width:130px; height:130px; pointer-events:none;
+  }
+  .tent {
+    position:absolute; top:0; width:5px;
+    background:linear-gradient(#7fd8e8,transparent);
+    border-radius:3px; transform-origin:top center;
+    animation:sway 4.5s ease-in-out infinite;
+  }
   .tent:nth-child(1){left:14px;height:96px;animation-delay:0s;}
   .tent:nth-child(2){left:38px;height:118px;animation-delay:.4s;}
   .tent:nth-child(3){left:62px;height:104px;animation-delay:.8s;}
@@ -41,225 +89,164 @@
   .tent:nth-child(5){left:110px;height:92px;animation-delay:1.6s;}
   @keyframes sway{0%,100%{transform:rotate(-9deg);}50%{transform:rotate(9deg);}}
 
-  /* ── 晃动反应 ── */
-  #stage.shaking .bell{
-    animation:jelly-shake .6s ease-in-out, glow-shake .6s ease-in-out !important;
-    box-shadow:0 0 60px rgba(255,165,100,.8),0 0 120px rgba(255,165,100,.4) !important;
+  #hint {
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    font-size:11px; color:rgba(127,216,232,.22);
+    letter-spacing:1.5px; pointer-events:none; text-align:center; line-height:2;
   }
-  @keyframes jelly-shake{
-    0%  {transform:translateX(-50%) rotate(0)    scaleX(1)   scaleY(1);}
-    10% {transform:translateX(-50%) rotate(-22deg) scaleX(1.25) scaleY(.75);}
-    22% {transform:translateX(-50%) rotate(20deg)  scaleX(.78)  scaleY(1.22);}
-    34% {transform:translateX(-50%) rotate(-16deg) scaleX(1.18) scaleY(.85);}
-    46% {transform:translateX(-50%) rotate(12deg)  scaleX(.88)  scaleY(1.14);}
-    58% {transform:translateX(-50%) rotate(-8deg)  scaleX(1.1)  scaleY(.92);}
-    70% {transform:translateX(-50%) rotate(4deg)   scaleX(.96)  scaleY(1.05);}
-    100%{transform:translateX(-50%) rotate(0)    scaleX(1)   scaleY(1);}
-  }
-  #stage.shaking .tent{animation:tent-wild .5s ease-in-out infinite !important;}
-  @keyframes tent-wild{
-    0%  {transform:rotate(-30deg);}
-    25% {transform:rotate(30deg) scaleY(1.3);}
-    50% {transform:rotate(-25deg) scaleY(.7);}
-    75% {transform:rotate(28deg) scaleY(1.2);}
-    100%{transform:rotate(-30deg);}
-  }
-  #stage.shaking .eye{
-    animation:dizzy-eye .4s ease-in-out infinite !important;
-    background:#2a1228;
-  }
-  @keyframes dizzy-eye{
-    0%,100%{transform:scaleX(1) scaleY(1) rotate(0);}
-    30%{transform:scaleX(1.6) scaleY(.4) rotate(-10deg);}
-    60%{transform:scaleX(.5) scaleY(1.5) rotate(10deg);}
-  }
-
-  /* ── 转圈反应 ── */
-  #stage.spinning #jelly-float{
-    animation:spin-dizzy .8s cubic-bezier(.4,0,.2,1) 1 !important;
-  }
-  @keyframes spin-dizzy{
-    0%  {transform:rotate(0) scale(1);}
-    25% {transform:rotate(180deg) scale(1.12);}
-    60% {transform:rotate(380deg) scale(.92);}
-    80% {transform:rotate(350deg) scale(1.05);}
-    100%{transform:rotate(360deg) scale(1);}
-  }
-  #stage.spinning .bell{
-    background:radial-gradient(ellipse at 50% 35%,#ffd6e6 0%,#ff9ec4 45%,#d4537e 100%) !important;
-    box-shadow:0 0 80px rgba(255,158,196,.9),0 0 140px rgba(255,158,196,.5) !important;
-    animation:none !important;
-    transform:translateX(-50%) !important;
-  }
-  #stage.spinning .tent{
-    animation:tent-spin .3s ease-in-out infinite alternate !important;
-  }
-  @keyframes tent-spin{
-    from{transform:rotate(-45deg) scaleY(.6);}
-    to  {transform:rotate(45deg)  scaleY(1.4);}
-  }
-
-  /* ── 说话泡泡 ── */
-  #speech{
-    position:absolute;top:-60px;left:50%;transform:translateX(-50%);
-    background:rgba(231,247,250,.9);color:#0a2540;
-    font-size:13px;padding:8px 14px;border-radius:14px;
-    white-space:nowrap;opacity:0;
-    transition:opacity .3s;pointer-events:none;
-  }
-  #speech.show{opacity:1;}
-
-  /* ── 状态标签 ── */
-  #status{
-    margin-top:28px;font-size:11px;letter-spacing:1px;
-    color:rgba(127,216,232,.35);height:18px;
-    transition:color .3s;
-  }
-  #status.active{color:rgba(127,216,232,.8);}
-
-  /* ── 速度条 ── */
-  #vel-bar-wrap{
-    margin-top:14px;width:200px;height:4px;background:rgba(127,216,232,.1);
-    border-radius:2px;overflow:hidden;
-  }
-  #vel-bar{height:100%;width:0%;background:var(--c,#7fd8e8);border-radius:2px;transition:width .08s,background .3s;}
-
-  #hint{margin-top:18px;font-size:11px;color:rgba(127,216,232,.25);text-align:center;line-height:1.8;}
 </style>
 </head>
 <body>
 
-<h2>水母晃动 / 转圈 · 反应预览</h2>
-<p>拖着它快速左右抖动，或者转圈圈</p>
-
-<div id="stage">
-  <div id="speech">头好晕…</div>
-  <div id="jelly-float">
-    <div class="bell"></div>
-    <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
-    <div class="cheeks"><div class="cheek"></div><div class="cheek"></div></div>
-    <div class="tentacles">
-      <div class="tent"></div><div class="tent"></div><div class="tent"></div>
-      <div class="tent"></div><div class="tent"></div>
+<div id="jelly">
+  <div id="rot-wrap">
+    <div id="float-wrap">
+      <div class="bell"></div>
+      <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+      <div class="cheeks"><div class="cheek"></div><div class="cheek"></div></div>
+      <div class="tentacles">
+        <div class="tent"></div><div class="tent"></div><div class="tent"></div>
+        <div class="tent"></div><div class="tent"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<div id="status">等待拖拽…</div>
-<div id="vel-bar-wrap"><div id="vel-bar"></div></div>
-
-<div id="hint">
-  🫨 &nbsp;左右快速晃动 → 水母惊慌抖动<br>
-  🌀 &nbsp;画圈拖动 → 水母被转晕变粉红
-</div>
+<div id="hint">拖我游动 · 画圈就跟着转</div>
 
 <script>
-const stage   = document.getElementById('stage');
-const status  = document.getElementById('status');
-const velBar  = document.getElementById('vel-bar');
-const speech  = document.getElementById('speech');
+const jelly   = document.getElementById('jelly');
+const rotWrap = document.getElementById('rot-wrap');
 
-const SHAKE_VEL   = 14;   // px/frame 超过此速度且方向反转视为晃动
-const SPIN_ANGLE  = 220;  // 累计转角超过此度视为转圈
-const HISTORY_LEN = 12;
+const W = window.innerWidth, H = window.innerHeight;
+let jellyX = W/2 - 100, jellyY = H/2 - 150;
+jelly.style.left = jellyX + 'px';
+jelly.style.top  = jellyY + 'px';
 
-let drag = { active:false, ox:0, oy:0, sx:0, sy:0 };
-let stageX = 0, stageY = 0;
-let velHistory = [];   // [{vx,vy,t}]
-let posHistory = [];   // [{x,y}]
+// ── 拖拽 ──
+let dragging = false, grabOffX = 0, grabOffY = 0;
 
-const SHAKE_MSGS  = ['诶！！','别晃了！','我头晕啦','咋了咋了？','停停停！'];
-const SPIN_MSGS   = ['头好晕…','转圈圈…','停下来嘛','嗯呜呜呜'];
+// ── 参考点（极慢跟随水母）──
+let refX = jellyX + 100, refY = jellyY + 150;
+const REF_RATE = 0.015;
 
-function rnd(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+// ── 旋转弹簧 ──
+let rot = 0, rotV = 0;
+const K = 0.020, D = 0.88;
 
-function saySomething(text, dur=2000){
-  speech.textContent = text;
-  speech.classList.add('show');
-  clearTimeout(speech._to);
-  speech._to = setTimeout(()=>speech.classList.remove('show'), dur);
+// ── 转圈检测：累计同向角度，需 ≥ 720° 才解锁（2 整圈）──
+const MAX_TILT   = 6;    // 普通模式最大倾斜度（极微小）
+let spinMode     = 0;    // 0=普通 1=转圈，平滑值
+let accAngle     = 0;    // 同方向累计角度（方向反转即清零）
+let lastAngSign  = 0;    // 上一帧的转向符号
+let prevDx = 0, prevDy = 0;
+
+function shortDiff(from, to){
+  let d = to - from;
+  while(d >  180) d -= 360;
+  while(d < -180) d += 360;
+  return d;
 }
 
-function triggerShake(){
-  if(stage.classList.contains('shaking')) return;
-  stage.classList.remove('spinning');
-  stage.classList.add('shaking');
-  status.textContent = '🫨 晃动反应'; status.classList.add('active');
-  saySomething(rnd(SHAKE_MSGS));
-  setTimeout(()=>{ stage.classList.remove('shaking'); status.textContent='等待拖拽…'; status.classList.remove('active'); }, 800);
+function resetSpin(){
+  spinMode = 0; accAngle = 0; lastAngSign = 0;
+  prevDx = 0; prevDy = 0;
 }
 
-function triggerSpin(){
-  if(stage.classList.contains('spinning')) return;
-  stage.classList.remove('shaking');
-  stage.classList.add('spinning');
-  status.textContent = '🌀 转圈反应'; status.classList.add('active');
-  saySomething(rnd(SPIN_MSGS));
-  setTimeout(()=>{ stage.classList.remove('spinning'); status.textContent='等待拖拽…'; status.classList.remove('active'); }, 1000);
-}
-
-stage.addEventListener('mousedown', e => {
-  if(e.button!==0) return;
-  drag.active=true; drag.sx=e.clientX; drag.sy=e.clientY;
-  const r=stage.getBoundingClientRect();
-  drag.ox=stageX; drag.oy=stageY;
-  velHistory=[]; posHistory=[];
+jelly.addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  dragging = true;
+  jelly.classList.add('dragging');
+  const r = jelly.getBoundingClientRect();
+  grabOffX = e.clientX - r.left;
+  grabOffY = e.clientY - r.top;
+  refX = jellyX + 100;
+  refY = jellyY + 150;
+  resetSpin();
   e.preventDefault();
 });
 
 document.addEventListener('mousemove', e => {
-  if(!drag.active) return;
-  const dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
-  stageX=drag.ox+dx; stageY=drag.oy+dy;
-  stage.style.transform=`translate(${stageX}px,${stageY}px)`;
-
-  const now=Date.now();
-  velHistory.push({vx:e.movementX,vy:e.movementY,t:now});
-  posHistory.push({x:e.clientX,y:e.clientY,t:now});
-  if(velHistory.length>HISTORY_LEN){ velHistory.shift(); posHistory.shift(); }
-
-  // 瞬时速度可视化
-  const spd = Math.sqrt(e.movementX**2+e.movementY**2);
-  const pct = Math.min(spd/20*100,100);
-  velBar.style.width = pct+'%';
-  velBar.style.setProperty('--c', pct>70?'#ff9ec4': pct>40?'#ffd980':'#7fd8e8');
-
-  analyzeGesture();
+  if(!dragging) return;
+  jellyX = e.clientX - grabOffX;
+  jellyY = e.clientY - grabOffY;
+  jelly.style.left = jellyX + 'px';
+  jelly.style.top  = jellyY + 'px';
 });
 
-document.addEventListener('mouseup', e => {
-  if(!drag.active) return;
-  drag.active=false;
-  velBar.style.width='0%';
+document.addEventListener('mouseup', () => {
+  dragging = false;
+  jelly.classList.remove('dragging');
+  resetSpin();
 });
 
-function analyzeGesture(){
-  if(velHistory.length < 6) return;
+function loop(){
+  const cx = jellyX + 100, cy = jellyY + 150;
 
-  // ── 晃动检测：近 HISTORY_LEN 帧内 x 方向至少反转 2 次 ──
-  let xRevs=0, lastXSign=0;
-  for(const {vx} of velHistory){
-    const s=Math.sign(vx);
-    if(s!==0 && s!==lastXSign && lastXSign!==0) xRevs++;
-    if(s!==0) lastXSign=s;
-  }
-  const avgSpd = velHistory.reduce((a,{vx,vy})=>a+Math.sqrt(vx*vx+vy*vy),0)/velHistory.length;
-  if(xRevs>=2 && avgSpd>SHAKE_VEL){ triggerShake(); return; }
+  let targetRot;
+  if(dragging){
+    refX += (cx - refX) * REF_RATE;
+    refY += (cy - refY) * REF_RATE;
+    const dx = cx - refX, dy = cy - refY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
 
-  // ── 转圈检测：近帧内累计角度变化超阈值 ──
-  if(posHistory.length < 6) return;
-  let totalAngle=0;
-  const cx = posHistory.reduce((a,p)=>a+p.x,0)/posHistory.length;
-  const cy = posHistory.reduce((a,p)=>a+p.y,0)/posHistory.length;
-  for(let i=1;i<posHistory.length;i++){
-    const a0=Math.atan2(posHistory[i-1].y-cy, posHistory[i-1].x-cx);
-    const a1=Math.atan2(posHistory[i].y-cy,   posHistory[i].x-cx);
-    let da=(a1-a0)*180/Math.PI;
-    if(da>180) da-=360; if(da<-180) da+=360;
-    totalAngle+=da;
+    if(dist > 10 && (prevDx !== 0 || prevDy !== 0)){
+      // 位移向量相对上一帧的角变化量
+      const cross  = prevDx * dy - prevDy * dx;
+      const dot    = prevDx * dx + prevDy * dy;
+      const angVel = Math.atan2(cross, dot) * 180 / Math.PI; // 度/帧
+
+      const sign = Math.sign(cross);
+      if(sign !== 0 && Math.abs(angVel) > 0.8){
+        if(lastAngSign !== 0 && sign !== lastAngSign){
+          // 方向反转：清零（横向晃动会在这里不断重置）
+          accAngle = 0;
+        } else {
+          accAngle += Math.abs(angVel);
+        }
+        lastAngSign = sign;
+      }
+
+      // 累计 720° = 2 完整圈才解锁转圈姿态
+      if(accAngle >= 720) spinMode = 1.0;
+
+      prevDx = dx; prevDy = dy;
+    } else if(dist > 10){
+      prevDx = dx; prevDy = dy;
+    }
+
+    if(dist > 10){
+      const fullAngle = Math.atan2(dx, -dy) * 180 / Math.PI;
+      if(spinMode > 0.3){
+        targetRot = fullAngle; // 转圈模式：完整跟随
+      } else {
+        // 普通模式：硬限 ±MAX_TILT，非常微小的侧倾
+        const raw = shortDiff(0, fullAngle);
+        const clamped = Math.max(-MAX_TILT, Math.min(MAX_TILT, raw));
+        targetRot = rot + shortDiff(rot, clamped);
+      }
+    } else {
+      targetRot = rot;
+    }
+  } else {
+    refX += (cx - refX) * 0.08;
+    refY += (cy - refY) * 0.08;
+    prevDx = 0; prevDy = 0;
+    targetRot = 0;
   }
-  if(Math.abs(totalAngle)>SPIN_ANGLE){ triggerSpin(); }
+
+  // 转圈模式缓慢衰减
+  spinMode *= 0.975;
+
+  const diff = shortDiff(rot, targetRot);
+  rotV += diff * K;
+  rotV *= D;
+  rot  += rotV;
+
+  rotWrap.style.transform = `rotate(${rot.toFixed(2)}deg)`;
+  requestAnimationFrame(loop);
 }
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
