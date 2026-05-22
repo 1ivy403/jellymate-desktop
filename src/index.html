@@ -126,7 +126,7 @@
 
   #jelly-wrap.near .bell{box-shadow:0 0 60px rgba(127,216,232,.75),0 0 120px rgba(127,216,232,.3)!important;}
   #jelly-wrap.faded{opacity:.28!important;}
-  #jelly-wrap.spin #jelly-float{animation:float 6s ease-in-out infinite,spin 1.4s ease-in-out;}
+  #jelly-wrap.spin #rot-wrap{animation:spin 1.4s ease-in-out forwards;}
   @keyframes spin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
 
   #jelly-wrap.tut-active::after{
@@ -194,22 +194,6 @@
   #recall-edge span{animation:rpulse 2s ease-in-out infinite;}
   @keyframes rpulse{0%,100%{opacity:.45;transform:scale(.9);}50%{opacity:1;transform:scale(1.1);}}
 
-  /* ── 好奇对话卡 ── */
-  #curious-card{
-    position:fixed;background:rgba(10,20,50,.96);
-    border:1px solid rgba(127,216,232,.28);border-radius:16px;padding:14px 16px 12px;
-    z-index:90;width:220px;box-shadow:0 16px 48px rgba(0,0,0,.5);
-    backdrop-filter:blur(14px);opacity:0;pointer-events:none;
-    transform:translateY(8px) scale(.95);
-    transition:opacity .28s ease,transform .28s cubic-bezier(.25,.9,.3,1);
-  }
-  #curious-card.show{opacity:1;pointer-events:all;transform:translateY(0) scale(1);}
-  .cc-q{font-size:12.5px;color:var(--ink-dim);margin-bottom:10px;}
-  .cc-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
-  .cc-chip{font-family:inherit;font-size:12px;background:rgba(127,216,232,.1);color:var(--glow-soft);border:1px solid rgba(127,216,232,.2);padding:6px 12px;border-radius:18px;cursor:pointer;transition:all .18s;}
-  .cc-chip:hover{background:rgba(127,216,232,.22);}
-  .cc-close{font-family:inherit;font-size:11px;color:rgba(143,164,196,.4);background:none;border:none;cursor:pointer;width:100%;text-align:center;padding:2px;display:block;}
-  .cc-close:hover{color:var(--ink-dim);}
 
   /* ── 教学卡 ── */
   #tut-card{
@@ -227,6 +211,10 @@
   .tut-progress{font-size:10px;color:rgba(127,216,232,.45);letter-spacing:1.5px;}
   .tut-skip{font-family:inherit;font-size:11px;color:rgba(143,164,196,.4);background:none;border:none;cursor:pointer;}
   .tut-skip:hover{color:var(--ink-dim);}
+  .tut-header-right{display:flex;align-items:center;gap:6px;}
+  .tut-back{font-family:inherit;font-size:11px;color:rgba(127,216,232,.4);background:none;border:none;cursor:pointer;transition:color .18s;}
+  .tut-back:hover{color:var(--glow);}
+  .tut-back:disabled{opacity:.2;cursor:default;pointer-events:none;}
   .tut-pbar{height:2px;background:rgba(127,216,232,.12);border-radius:2px;margin-bottom:16px;overflow:hidden;}
   .tut-pfill{height:100%;background:var(--glow);border-radius:2px;transition:width .4s ease;}
   .tut-title{font-size:17px;color:var(--ink);font-weight:600;line-height:1.3;margin-bottom:7px;}
@@ -242,6 +230,7 @@
   @keyframes flash-in{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:none;}}
   .tut-arrow{font-size:11px;color:rgba(127,216,232,.35);text-align:right;margin-top:10px;animation:arr 1.5s ease-in-out infinite;}
   @keyframes arr{0%,100%{opacity:.35;transform:translateX(0);}50%{opacity:.7;transform:translateX(5px);}}
+
 </style>
 </head>
 <body>
@@ -268,8 +257,11 @@
 
 <div id="tut-card">
   <div class="tut-header">
-    <span class="tut-progress" id="tut-progress">1 / 8</span>
-    <button class="tut-skip" id="tut-skip-btn">跳过</button>
+    <span class="tut-progress" id="tut-progress">1 / 9</span>
+    <div class="tut-header-right">
+      <button class="tut-back" id="tut-back-btn" disabled>← 上一步</button>
+      <button class="tut-skip" id="tut-skip-btn">跳过</button>
+    </div>
   </div>
   <div class="tut-pbar"><div class="tut-pfill" id="tut-pfill" style="width:0%"></div></div>
   <div class="tut-title" id="tut-title">嘿，见到你了 🪼</div>
@@ -278,17 +270,6 @@
   <div class="tut-waiting" id="tut-waiting">正在等你操作…</div>
   <div class="tut-done-flash" id="tut-done-flash">✓ 做到了！</div>
   <div class="tut-arrow" id="tut-arrow">向右下角找找我 →</div>
-</div>
-
-<div id="curious-card">
-  <div class="cc-q">想和我说什么？</div>
-  <div class="cc-chips">
-    <button class="cc-chip" data-mood="sleepy" data-say="嗯，好好歇歇">今天有点累</button>
-    <button class="cc-chip" data-mood="happy"  data-say="那就好" data-spin="1">心情还好</button>
-    <button class="cc-chip" data-mood="calm"   data-say="先深呼吸，我在">有点压力</button>
-    <button class="cc-chip" data-action="focus">陪我专注</button>
-  </div>
-  <button class="cc-close" id="cc-close-btn">算了，随便看看你</button>
 </div>
 
 <script>
@@ -354,22 +335,29 @@ function setMood(m, source){
 // ── 气泡 ──
 let bubbleTO = null;
 function repositionBubble(){
-  const bw = 220, gap = 12;
+  const bw=220, gap=12;
   let bx, by;
-  if(edgeDockSide === 'top'){
-    bx = posX + (wrap.offsetWidth - bw) / 2;
-    by = posY + wrap.offsetHeight + gap;
-  } else if(posX < bw + gap){
+  if(edgeDockSide==='right'){
+    bx = posX - bw - gap;
+    by = posY + 50;
+  } else if(edgeDockSide==='left'){
     bx = posX + wrap.offsetWidth + gap;
-    by = posY + 4;
+    by = posY + 50;
+  } else if(edgeDockSide==='top'){
+    bx = posX + (wrap.offsetWidth-bw)/2;
+    by = posY + wrap.offsetHeight + gap;
+  } else if(edgeDockSide==='bottom'){
+    bx = posX + (wrap.offsetWidth-bw)/2;
+    by = posY - 65;
   } else {
     bx = posX - bw - gap;
-    by = posY + 4;
+    by = posY + 40;
+    if(bx < 8) bx = posX + wrap.offsetWidth + gap;
   }
-  bx = Math.max(8, Math.min(bx, window.innerWidth  - bw - 8));
-  by = Math.max(8, Math.min(by, window.innerHeight - 80));
-  bubble.style.left = bx + 'px';
-  bubble.style.top  = by + 'px';
+  bx=Math.max(8,Math.min(bx,window.innerWidth-bw-8));
+  by=Math.max(8,Math.min(by,window.innerHeight-80));
+  bubble.style.left=bx+'px';
+  bubble.style.top=by+'px';
 }
 function speak(text, dur=2800){
   repositionBubble();
@@ -388,6 +376,10 @@ let isOut = false, isFaded = false, isDismissed = false;
 let edgeDockSide = null;
 
 function swimOut(){
+  if(edgeDockSide){
+    edgeDockSide=null;
+    wrap.classList.remove('edge-right','edge-left','edge-bottom','edge-top');
+  }
   isOut = true;
   animateTo(posX, window.innerHeight - wrap.offsetHeight - 90);
 }
@@ -429,6 +421,7 @@ function toggleFade(){
   if(isFaded){
     isFaded = false;
     wrap.classList.remove('faded');
+    lastJellyNearTime = Date.now(); // 恢复后重置计时，避免立刻再次半透明
   } else {
     isFaded = true; isDismissed = false;
     recallEdge.classList.remove('show');
@@ -445,19 +438,19 @@ wrap.addEventListener('mouseenter', () => {
   hoverCuriousTO = setTimeout(() => {
     if(['calm','sleepy'].includes(currentMood)){
       setMood('curious','hover');
-      if(!isOut) swimOut();
+      if(!isOut && !edgeDockSide) swimOut();
     }
   }, 3000);
 });
 wrap.addEventListener('mouseleave', () => {
   clearTimeout(hoverCuriousTO);
-  if(!curiousCard.classList.contains('show') && !tutCard.classList.contains('show')){
+  if(!tutCard.classList.contains('show')){
     api.mouseLeaveJelly();
   }
   if(_curiositySource === 'hover'){
     setTimeout(() => {
       if(currentMood==='curious' && _curiositySource==='hover'){
-        setMood('calm'); closeCuriousCard();
+        setMood('calm');
       }
     }, 2500);
   }
@@ -477,6 +470,7 @@ const drag = {
   sx:0, sy:0, ox:0, oy:0, tx:0, ty:0,
   startTime:0, longTO:null, rafId:null
 };
+let afterDragCooldown = false;
 
 function dragTick(){
   if(!drag.active) return;
@@ -494,6 +488,7 @@ document.addEventListener('mouseup', onUp);
 function onDown(e){
   if(e.button !== 0) return;
   e.preventDefault();
+  lastJellyNearTime = Date.now();
   drag.active=true; drag.moved=false; drag.longFired=false;
   drag.sx=e.clientX; drag.sy=e.clientY;
   drag.ox=posX; drag.oy=posY;
@@ -536,13 +531,18 @@ function endDrag(){
   else if(cy>H-100) newEdge='bottom';
   else if(cy<100) newEdge='top';
 
-  // 已贴边状态再次向同侧拖动 → 退下（上下退向右，左退向左）
+  // 已贴边 + 向同侧方向推进 ≥ 20px → 退下；否则只是换位
   if(edgeDockSide && newEdge===edgeDockSide){
-    edgeDockSide=null;
-    wrap.classList.remove('edge-right','edge-left','edge-bottom','edge-top');
-    dismiss();
-    tutSignal('drag');
-    return;
+    const pushed =
+      (edgeDockSide==='right'  && posX > drag.ox + 20) ||
+      (edgeDockSide==='left'   && posX < drag.ox - 20) ||
+      (edgeDockSide==='bottom' && posY > drag.oy + 20) ||
+      (edgeDockSide==='top'    && posY < drag.oy - 20);
+    if(pushed){
+      edgeDockSide=null;
+      wrap.classList.remove('edge-right','edge-left','edge-bottom','edge-top');
+      dismiss(); tutSignal('drag'); return;
+    }
   }
 
   if(newEdge==='right') nx=W-wrap.offsetWidth*.6;
@@ -556,6 +556,9 @@ function endDrag(){
   edgeDockSide=newEdge;
   wrap.classList.remove('edge-right','edge-left','edge-bottom','edge-top');
   if(newEdge) wrap.classList.add('edge-'+newEdge);
+  // 贴边后 1.5s 内不触发 curious，防止鼠标还在附近立刻弹对话框
+  afterDragCooldown=true;
+  setTimeout(()=>{ afterDragCooldown=false; }, 1500);
 
   tutSignal('drag');
 }
@@ -584,7 +587,7 @@ function recordClick(){
 function onSingleClick(){
   if(isDismissed) return;
   if(isFaded){ toggleFade(); return; }
-  if(currentMood==='curious'){ openCuriousCard(); tutSignal('tap'); return; }
+  if(edgeDockSide){ speakMood(); return; }
   if(!isOut) swimOut();
   speakMood(); tutSignal('tap');
 }
@@ -604,6 +607,7 @@ function onDoubleClick(){
 function onTripleClick(){
   if(isDismissed) return;
   toggleFade();
+  tutSignal('triple');
 }
 function onPokedRepeatedly(){
   if(isDismissed) return;
@@ -634,7 +638,8 @@ function proximityTick(){
   }
   if(dist<260 && !nearState){
     nearState=true; wrap.classList.add('near');
-    if(dist<130 && currentMood==='calm' && !drag.active) setMood('curious','proximity');
+    lastJellyNearTime=Date.now(); // 进入 260px 才算互动，不用 500px 眼球范围
+    if(dist<130 && currentMood==='calm' && !drag.active && !afterDragCooldown) setMood('curious','proximity');
     tutSignal('proximity');
   } else if(dist>=300 && nearState){
     nearState=false; wrap.classList.remove('near');
@@ -646,35 +651,16 @@ function proximityTick(){
 }
 setInterval(proximityTick, 32);
 
-// ── 好奇对话卡 ──
-const curiousCard = document.getElementById('curious-card');
-function openCuriousCard(){
-  const rect=wrap.getBoundingClientRect();
-  const cw=228, gap=14;
-  let left=rect.left-cw-gap, top=rect.top+rect.height/2-80;
-  if(left<10) left=rect.right+gap;
-  if(left+cw>window.innerWidth-10) left=Math.max(10,rect.left-cw-gap);
-  top=Math.max(10,Math.min(top,window.innerHeight-180));
-  curiousCard.style.left=left+'px'; curiousCard.style.top=top+'px';
-  curiousCard.classList.add('show');
-  api.mouseEnterJelly();
-}
-function closeCuriousCard(){
-  curiousCard.classList.remove('show');
-}
-document.querySelectorAll('.cc-chip').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    closeCuriousCard();
-    const action=btn.dataset.action;
-    if(action==='focus'){ if(!isOut) swimOut(); startFocus(); return; }
-    if(btn.dataset.mood) setMood(btn.dataset.mood,'user');
-    if(btn.dataset.say) speak(btn.dataset.say,3200);
-    if(btn.dataset.spin){ wrap.classList.add('spin'); setTimeout(()=>wrap.classList.remove('spin'),1400); }
-  });
-});
-document.getElementById('cc-close-btn').addEventListener('click',()=>{
-  closeCuriousCard(); speak('好，我在这儿',2000);
-});
+// ── 3 分钟无互动自动半透明 ──
+let lastJellyNearTime = Date.now();
+const JELLY_FADE_IDLE = 3 * 60 * 1000;
+setInterval(()=>{
+  if(isFaded || isDismissed || drag.active) return;
+  if(Date.now() - lastJellyNearTime > JELLY_FADE_IDLE){
+    isFaded = true;
+    wrap.classList.add('faded');
+  }
+}, 10000);
 
 // ── 离开 / 回来 ──
 let userWasAway=false, returnDebounce=null;
@@ -768,6 +754,7 @@ const TUT_STEPS=[
   {title:'把鼠标慢慢靠近我',sub:'越近越好，我会注意到你的',wait:'proximity',arrow:'向右下角的我靠近 →'},
   {title:'轻点一下我',sub:'就像戳一下，打个招呼',wait:'tap',arrow:'单击我 →'},
   {title:'双击我',sub:'开始 25 分钟专注陪伴\n再次双击可随时退出',wait:'dbl',arrow:'双击我 →'},
+  {title:'连击我三下',sub:'我会悄悄隐身，不打扰你\n再点一下就能让我回来',wait:'triple',arrow:'快速三击 →'},
   {title:'拖着我换个地方',sub:'我可以住在屏幕任意角落\n贴近边缘会自动吸附',wait:'drag',arrow:'按住拖动我 →'},
   {title:'快速连点我 4 次',sub:'看看我会有什么反应…',wait:'poked',arrow:'4 次快速点击 →'},
   {title:'长按我 0.8 秒',sub:'我会暂时退下\n右边有个按钮能把我召回',wait:'longpress',arrow:'长按我 →'},
@@ -796,6 +783,15 @@ tutActionBtn.addEventListener('click',()=>{
   if(tutStep<TUT_STEPS.length-1) advanceTutorial(); else endTutorial(false);
 });
 document.getElementById('tut-skip-btn').addEventListener('click',()=>endTutorial(true));
+document.getElementById('tut-back-btn').addEventListener('click',()=>{
+  if(!tutActive || tutStep<=0) return;
+  tutWaiting=false;
+  wrap.classList.remove('tut-success','tut-active');
+  tutCard.classList.remove('step-done');
+  tutDoneEl.classList.remove('show');
+  tutStep--;
+  showTutStep(tutStep);
+});
 
 function startTutorial(){
   tutActive=true; tutStep=0;
@@ -804,11 +800,26 @@ function startTutorial(){
   showTutStep(0);
 }
 function repositionTutCard(){
-  const rect=wrap.getBoundingClientRect();
-  const cw=264,ch=220,gap=16;
-  let left=rect.left-cw-gap, top=rect.top+(rect.height-ch)/2;
-  if(left<12) left=rect.right+gap;
-  if(left+cw>window.innerWidth-12) left=Math.max(12,rect.left+(rect.width-cw)/2);
+  const cw=264, ch=240, gap=12;
+  let left, top;
+  if(edgeDockSide==='right'){
+    left = posX - cw - gap;
+    top  = posY + 40;
+  } else if(edgeDockSide==='left'){
+    left = posX + wrap.offsetWidth + gap;
+    top  = posY + 40;
+  } else if(edgeDockSide==='top'){
+    left = posX + (wrap.offsetWidth-cw)/2;
+    top  = posY + wrap.offsetHeight + gap;
+  } else if(edgeDockSide==='bottom'){
+    left = posX + (wrap.offsetWidth-cw)/2;
+    top  = posY - ch - gap;
+  } else {
+    left = posX - cw - gap;
+    top  = posY + 40;
+    if(left < 12) left = posX + wrap.offsetWidth + gap;
+  }
+  left=Math.max(12,Math.min(left,window.innerWidth-cw-12));
   top=Math.max(12,Math.min(top,window.innerHeight-ch-12));
   tutCard.style.left=left+'px'; tutCard.style.top=top+'px';
 }
@@ -821,6 +832,7 @@ function showTutStep(i){
   tutArrow.style.display=step.arrow?'':'none';
   tutProgress.textContent=`${i+1} / ${TUT_STEPS.length}`;
   tutPfill.style.width=((i/(TUT_STEPS.length-1))*100).toFixed(0)+'%';
+  document.getElementById('tut-back-btn').disabled=(i===0);
   if(step.wait==='btn'){
     tutActionBtn.textContent=step.btn||'下一步';
     tutActionBtn.classList.add('show'); tutWaitEl.classList.remove('show');
@@ -829,6 +841,11 @@ function showTutStep(i){
   }
   tutDoneEl.classList.remove('show'); tutCard.classList.remove('step-done');
   wrap.classList.add('tut-active');
+  // 问题6修复：进入 proximity 步骤时重置近距离状态，使当前位置也可触发
+  if(step.wait==='proximity'){
+    nearState=false;
+    wrap.classList.remove('near');
+  }
   repositionTutCard();
   api.mouseEnterJelly();
 }
@@ -852,6 +869,14 @@ function endTutorial(skipped=false){
   tutCard.classList.remove('show');
   wrap.classList.remove('tut-active','tut-success');
   if(isDismissed) recall();
+  // 确保光圈彻底消失，延迟再清一次防止动画遗留
+  setTimeout(()=>wrap.classList.remove('tut-active','tut-success'), 150);
+  // 恢复鼠标穿透（若鼠标不在水母上则还原透明点击）
+  setTimeout(()=>{
+    if(!wrap.matches(':hover')){
+      api.mouseLeaveJelly();
+    }
+  }, 400);
   if(skipped){
     speak('好，我就在这 🪼',3500); setMood('calm');
   } else {
@@ -868,13 +893,17 @@ if(localStorage.getItem(TUT_DONE_KEY)){
   setTimeout(startTutorial, 800);
 }
 
-// Shift+T → 重置并重新播放新手引导（测试用）
+// Shift+T → 重置并重新播放新手引导
+function resetAndStartTutorial(){
+  localStorage.removeItem(TUT_DONE_KEY);
+  if(tutActive) endTutorial(true);
+  setTimeout(startTutorial, 300);
+}
+// 全局快捷键（Electron）：不依赖窗口焦点
+if(IS_ELECTRON) api.onResetTutorial(resetAndStartTutorial);
+// 降级：网页模式或窗口已获焦点时的键盘监听
 document.addEventListener('keydown', e => {
-  if(e.shiftKey && e.key === 'T'){
-    localStorage.removeItem(TUT_DONE_KEY);
-    if(tutActive) endTutorial(true);
-    setTimeout(startTutorial, 300);
-  }
+  if(e.shiftKey && e.key === 'T') resetAndStartTutorial();
 });
 
 // ── 拖拽旋转物理 ──

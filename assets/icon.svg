@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!--
+      全部尺寸从 CSS 原始值以 3.5× 缩放推算：
+      原始 bell: 140×120px; 缩放后: 490×420px
+      center-x: 512, bell top: 120, bell bottom: 540
+      左边 x: 267, 右边 x: 757
+    -->
+
+    <!-- 钟体渐变：极淡粉蓝，顶部最亮 -->
+    <radialGradient id="bg" cx="50%" cy="26%" r="62%">
+      <stop offset="0%"   stop-color="#ecf7fb"/>
+      <stop offset="42%"  stop-color="#c0dcea"/>
+      <stop offset="100%" stop-color="#82b4c8"/>
+    </radialGradient>
+
+    <!-- 顶部柔和高光 -->
+    <radialGradient id="shine" cx="48%" cy="20%" r="28%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.60)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+
+    <!-- 触手颜色（从 CSS --bell-mid:#7fd8e8 派生） -->
+    <linearGradient id="tent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#9ed4e2" stop-opacity="0.80"/>
+      <stop offset="55%"  stop-color="#9ed4e2" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#9ed4e2" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- 巨型柔散光晕（模拟 CSS box-shadow aura） -->
+    <filter id="aura" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="68"/>
+    </filter>
+
+    <!-- 钟体外缘轻微发光 -->
+    <filter id="glow" x="-8%" y="-8%" width="116%" height="116%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ── 背景光晕 ── -->
+  <ellipse cx="512" cy="370" rx="380" ry="300"
+    fill="#aad8ea" opacity="0.55" filter="url(#aura)"/>
+
+  <!--
+    ── 触手 ──
+    CSS 5 根触手，相对 wrapper 中心(100px)的偏移:
+    -51, -27, -3, +21, +45 px → 3.5× → -178, -95, -10, +74, +158
+    x: 334, 417, 502, 586, 670
+    高度原始: 96, 118, 104, 120, 92px → 3.5× → 336, 413, 364, 420, 322px
+    起始 y ≈ 508 (css top:150px → -20 + 525 = 505)
+    CSS sway: 奇数 -9deg 偶数 +9deg（静态图取近似姿态）
+  -->
+  <path d="M 334 510 C 318 610, 342 710, 324 840 C 312 930, 328 970, 316 1024"
+    stroke="url(#tent)" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M 417 506 C 408 614, 428 718, 416 848 C 407 940, 420 980, 410 1024"
+    stroke="url(#tent)" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M 502 504 C 502 614, 504 720, 503 852 C 502 944, 503 984, 503 1024"
+    stroke="url(#tent)" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M 586 506 C 596 614, 576 718, 588 848 C 597 940, 584 980, 594 1024"
+    stroke="url(#tent)" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M 670 510 C 686 610, 662 710, 680 840 C 692 930, 676 970, 688 1024"
+    stroke="url(#tent)" stroke-width="11" stroke-linecap="round" fill="none"/>
+
+  <!--
+    ── 钟形主体 ──
+    精确模拟 CSS border-radius: 50% 50% 44% 44% / 62% 62% 38% 38%
+    bell 490×420, left=267, right=757, top=120, bottom=540
+    TL/TR-H: 245, BL/BR-H: 216
+    TL/TR-V: 260, BL/BR-V: 160
+    赤道 y: 380; 平底段 x: 483~541
+    k=0.5523
+  -->
+  <path d="M 512 120
+    C 647,120 757,236 757,380
+    C 757,468 660,540 541,540
+    L 483,540
+    C 364,540 267,468 267,380
+    C 267,236 377,120 512,120 Z"
+    fill="url(#bg)" filter="url(#glow)"/>
+
+  <!-- 顶部高光叠加 -->
+  <path d="M 512 120
+    C 647,120 757,236 757,380
+    C 757,468 660,540 541,540
+    L 483,540
+    C 364,540 267,468 267,380
+    C 267,236 377,120 512,120 Z"
+    fill="url(#shine)"/>
+
+  <!--
+    ── 眼睛 ──
+    CSS: top:86px(wrapper), 即 86+7-40=53px 下钟顶 = 44% of 420 = 185px
+    y = 120+185 = 305
+    CSS eye: 11×14px → rx=19, ry=25
+    center-to-center: (26+11)×3.5 = 129px; 各距中心 ±64.5
+    left: 512-65=447, right: 512+65=577
+  -->
+  <ellipse cx="447" cy="305" rx="19" ry="25" fill="#1b2130"/>
+  <ellipse cx="577" cy="305" rx="19" ry="25" fill="#1b2130"/>
+
+  <!-- 眼睛高光 -->
+  <ellipse cx="441" cy="296" rx="5" ry="7" fill="rgba(255,255,255,0.52)"/>
+  <ellipse cx="571" cy="296" rx="5" ry="7" fill="rgba(255,255,255,0.52)"/>
+
+  <!--
+    ── 腮红 ──
+    CSS: top:104px → center 108.5px → (108.5-40)/120=57% → y=120+240=360
+    cheek 15×9px, gap 62px; centers ±(31+7.5)×3.5=±134px
+    left: 378, right: 646
+  -->
+  <ellipse cx="378" cy="360" rx="26" ry="15" fill="#c8b0c4" opacity="0.34"/>
+  <ellipse cx="646" cy="360" rx="26" ry="15" fill="#c8b0c4" opacity="0.34"/>
+</svg>
