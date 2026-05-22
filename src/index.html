@@ -126,8 +126,6 @@
 
   #jelly-wrap.near .bell{box-shadow:0 0 60px rgba(127,216,232,.75),0 0 120px rgba(127,216,232,.3)!important;}
   #jelly-wrap.faded{opacity:.28!important;}
-  #jelly-wrap.spin #rot-wrap{animation:spin 1.4s ease-in-out forwards;}
-  @keyframes spin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
 
   #jelly-wrap.tut-active::after{
     content:"";position:absolute;inset:-12px;border-radius:50% 50% 44% 44%/60% 60% 40% 40%;
@@ -413,8 +411,7 @@ function recall(){
   posY = window.innerHeight - wrap.offsetHeight - 20;
   animateTo(posX, posY);
   setMood('happy'); speak('我回来啦');
-  wrap.classList.add('spin');
-  setTimeout(() => wrap.classList.remove('spin'), 1500);
+  triggerCelebrateSpin();
   isOut = true;
 }
 function toggleFade(){
@@ -593,8 +590,7 @@ function onSingleClick(){
 }
 function onDoubleClick(){
   if(isDismissed) return;
-  wrap.classList.add('spin');
-  setTimeout(()=>wrap.classList.remove('spin'),1400);
+  triggerCelebrateSpin();
   if(focusTimer){
     clearInterval(focusTimer); focusTimer=null;
     focusTag.classList.remove('show');
@@ -684,8 +680,7 @@ function onUserReturned(){
       if(isOut) sinkBack();
       setTimeout(()=>{
         swimOut(); setMood('happy');
-        wrap.classList.add('spin'); speak('你回来了，我还在');
-        setTimeout(()=>wrap.classList.remove('spin'),1500);
+        triggerCelebrateSpin(); speak('你回来了，我还在');
         if(!wasOut) setTimeout(()=>sinkBack(),5000);
       }, isOut?900:0);
     } else {
@@ -717,9 +712,8 @@ function startFocus(){
     if(total<=0){
       clearInterval(focusTimer); focusTimer=null;
       focusTag.classList.remove('show');
-      setMood('happy'); wrap.classList.add('spin');
+      setMood('happy'); triggerCelebrateSpin();
       speak('你专注了 25 分钟，真棒');
-      setTimeout(()=>wrap.classList.remove('spin'),1500);
       return;
     }
     const mm=String(Math.floor(total/60)).padStart(2,'0');
@@ -856,9 +850,10 @@ function tutSignal(type){
 function advanceTutorial(){
   tutWaiting=false; tutWaitEl.classList.remove('show');
   tutDoneEl.classList.add('show'); tutCard.classList.add('step-done');
-  wrap.classList.add('tut-success','spin');
+  wrap.classList.add('tut-success');
+  triggerCelebrateSpin();
   setTimeout(()=>{
-    wrap.classList.remove('spin','tut-success'); tutCard.classList.remove('step-done');
+    wrap.classList.remove('tut-success'); tutCard.classList.remove('step-done');
     tutDoneEl.classList.remove('show'); tutStep++;
     if(tutStep>=TUT_STEPS.length) endTutorial(false); else showTutStep(tutStep);
   },900);
@@ -917,6 +912,22 @@ let rotAccAngle = 0;       // 同向累计角度（720°=2圈才触发）
 let rotLastAngSign = 0;
 let rotPrevDx = 0, rotPrevDy = 0;
 
+// 庆祝旋转（教程完成 / 专注完成等）—— 由 JS 驱动，避免与 rotLoop 争抢 transform
+const CELEBRATE_SPIN_MS = 1400;
+let celebrateSpinActive = false;
+let celebrateSpinStart = 0;
+
+function easeInOutCubic(t){
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+function triggerCelebrateSpin(){
+  celebrateSpinActive = true;
+  celebrateSpinStart = performance.now();
+  rotAngle = 0;
+  rotVel = 0;
+  resetRotState();
+}
+
 function rotShortDiff(from, to){
   let d = to - from;
   while(d >  180) d -= 360;
@@ -933,6 +944,20 @@ wrap.addEventListener('mousedown', () => {
 }, true);
 
 (function rotLoop(){
+  if(celebrateSpinActive){
+    const t = Math.min(1, (performance.now() - celebrateSpinStart) / CELEBRATE_SPIN_MS);
+    rotAngle = easeInOutCubic(t) * 360;
+    rotWrapEl.style.transform = `rotate(${rotAngle.toFixed(2)}deg)`;
+    if(t >= 1){
+      celebrateSpinActive = false;
+      rotAngle = 0;
+      rotVel = 0;
+      rotWrapEl.style.transform = '';
+    }
+    requestAnimationFrame(rotLoop);
+    return;
+  }
+
   const cx = posX + 100, cy = posY + 150;
   let targetRot;
 
