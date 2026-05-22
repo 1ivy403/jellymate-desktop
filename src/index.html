@@ -495,11 +495,14 @@ function onDown(e){
   drag.longTO = setTimeout(onLongPress, 750);
   drag.rafId = requestAnimationFrame(dragTick);
 }
+const CLICK_GAP = 650;   // 连击判定窗口（含 4 连 poke）
+const DRAG_SLOP = 12;    // 小于此像素视为点击，不算拖拽
+
 function onMove(e){
   mouseX=e.clientX; mouseY=e.clientY;
   if(!drag.active) return;
   const dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
-  if(!drag.moved && (Math.abs(dx)>6||Math.abs(dy)>6)){
+  if(!drag.moved && (Math.abs(dx)>DRAG_SLOP||Math.abs(dy)>DRAG_SLOP)){
     drag.moved=true;
     clearTimeout(drag.longTO);
     wrap.classList.remove('pressing');
@@ -515,7 +518,9 @@ function onUp(e){
   drag.active=false;
   wrap.classList.remove('pressing','dragging');
   if(drag.longFired) return;
-  if(drag.moved) endDrag();
+  const dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
+  const isDrag = Math.abs(dx) > DRAG_SLOP || Math.abs(dy) > DRAG_SLOP;
+  if(isDrag) endDrag();
   else recordClick();
 }
 function endDrag(){
@@ -569,22 +574,26 @@ function onLongPress(){
 }
 
 // ── 点击频率 ──
-let clickCount=0, clickTO=null;
+let clickTimes=[], clickTO=null;
 function recordClick(){
-  clickCount++;
+  const now = Date.now();
+  clickTimes = clickTimes.filter(t => now - t < CLICK_GAP);
+  clickTimes.push(now);
   clearTimeout(clickTO);
-  if(clickCount>=4){
-    clearTimeout(clickTO);
+
+  if(clickTimes.length >= 4){
+    clickTimes = [];
     onPokedRepeatedly();
-    clickCount=0;
     return;
   }
+
   clickTO = setTimeout(()=>{
-    if(clickCount===1)      onSingleClick();
-    else if(clickCount===2) onDoubleClick();
-    else if(clickCount===3) onTripleClick();
-    clickCount=0;
-  }, 290);
+    const n = clickTimes.length;
+    clickTimes = [];
+    if(n===1) onSingleClick();
+    else if(n===2) onDoubleClick();
+    else if(n===3) onTripleClick();
+  }, CLICK_GAP);
 }
 function onSingleClick(){
   if(isDismissed) return;
@@ -607,7 +616,9 @@ function onDoubleClick(){
 }
 function onTripleClick(){
   if(isDismissed) return;
+  const wasFaded = isFaded;
   toggleFade();
+  if(wasFaded) speakMood();
   tutSignal('triple');
 }
 function onPokedRepeatedly(){
