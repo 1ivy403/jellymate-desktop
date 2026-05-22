@@ -4,7 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2012%2B-lightgrey)](https://github.com/1ivy403/jellymate-desktop/releases/latest)
-[![Release](https://img.shields.io/github/v/release/1ivy403/jellymate-desktop)](https://github.com/1ivy403/jellymate-desktop/releases/latest)
 
 <p align="center">
   <a href="https://jellymate-amber.vercel.app/download"><strong>⬇ 下载 macOS App</strong></a>
@@ -14,7 +13,7 @@
 
 <p align="center">
   <a href="https://jellymate-amber.vercel.app/demo">
-    <img src="https://jellymate-amber.vercel.app/og.png" alt="一只水母住在屏幕边缘" width="720">
+    <img src="assets/readme-cover.svg" alt="一只水母住在屏幕边缘" width="720">
   </a>
 </p>
 
