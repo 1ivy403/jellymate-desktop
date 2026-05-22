@@ -12,16 +12,12 @@
 </p>
 
 <p align="center">
-  <a href="https://jellymate-amber.vercel.app/demo">
-    <img src="assets/readme-cover.svg" alt="一只水母住在屏幕边缘" width="720">
-  </a>
+  <img src="assets/readme-cover.svg" alt="JellyMate 演示封面" width="720">
 </p>
 
 <p align="center">
-  <a href="https://jellymate-amber.vercel.app/demo"><strong>▶ 先来见见它</strong></a>
+  <a href="https://jellymate-amber.vercel.app/demo"><strong>🪼 查看演示</strong></a>
 </p>
-
-<p align="center"><sub>它会靠岸 · 会探头 · 会陪伴 · 也会退开</sub></p>
 
 > 没有通知，没有弹窗，没有账号。**一只住在屏幕边缘的水母，有自己的节奏，你也保留你的空间。**
 
