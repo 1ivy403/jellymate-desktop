@@ -9,13 +9,7 @@
   <a href="https://jellymate-amber.vercel.app/download"><strong>⬇ 下载 macOS App</strong></a>
   &nbsp;·&nbsp;
   <a href="https://jellymate-amber.vercel.app">产品页</a>
-</p>
-
-<p align="center">
-  <img src="assets/readme-cover.svg" alt="JellyMate 演示封面" width="720">
-</p>
-
-<p align="center">
+  &nbsp;·&nbsp;
   <a href="https://jellymate-amber.vercel.app/demo"><strong>🪼 查看演示</strong></a>
 </p>
 
