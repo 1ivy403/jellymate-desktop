@@ -154,7 +154,7 @@
     transition:opacity .4s ease,transform .4s ease;
     pointer-events:none;
     box-shadow:0 8px 24px rgba(0,0,0,.3);
-    z-index:55;max-width:220px;white-space:normal;line-height:1.5;
+    z-index:110;max-width:220px;white-space:normal;line-height:1.5;
   }
   #bubble.show{opacity:1;transform:translateY(0) scale(1);}
 
@@ -573,7 +573,12 @@ let clickCount=0, clickTO=null;
 function recordClick(){
   clickCount++;
   clearTimeout(clickTO);
-  if(clickCount>=4){ onPokedRepeatedly(); clickCount=0; return; }
+  if(clickCount>=4){
+    clearTimeout(clickTO);
+    onPokedRepeatedly();
+    clickCount=0;
+    return;
+  }
   clickTO = setTimeout(()=>{
     if(clickCount===1)      onSingleClick();
     else if(clickCount===2) onDoubleClick();
@@ -583,7 +588,7 @@ function recordClick(){
 }
 function onSingleClick(){
   if(isDismissed) return;
-  if(isFaded){ toggleFade(); return; }
+  if(isFaded){ toggleFade(); speakMood(); return; }
   if(edgeDockSide){ speakMood(); return; }
   if(!isOut) swimOut();
   speakMood(); tutSignal('tap');
