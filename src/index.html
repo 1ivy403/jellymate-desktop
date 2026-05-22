@@ -856,7 +856,7 @@ function advanceTutorial(){
     wrap.classList.remove('tut-success'); tutCard.classList.remove('step-done');
     tutDoneEl.classList.remove('show'); tutStep++;
     if(tutStep>=TUT_STEPS.length) endTutorial(false); else showTutStep(tutStep);
-  },900);
+  },1400);
 }
 function endTutorial(skipped=false){
   tutActive=false; tutWaiting=false;
