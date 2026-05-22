@@ -444,7 +444,7 @@ wrap.addEventListener('mouseenter', () => {
 });
 wrap.addEventListener('mouseleave', () => {
   clearTimeout(hoverCuriousTO);
-  if(!tutCard.classList.contains('show')){
+  if(!tutCard.matches(':hover')){
     api.mouseLeaveJelly();
   }
   if(_curiositySource === 'hover'){
@@ -847,7 +847,6 @@ function showTutStep(i){
     wrap.classList.remove('near');
   }
   repositionTutCard();
-  api.mouseEnterJelly();
 }
 function tutSignal(type){
   if(!tutActive||!tutWaiting) return;
